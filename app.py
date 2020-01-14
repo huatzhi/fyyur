@@ -3,16 +3,16 @@
 #----------------------------------------------------------------------------#
 
 import json
+import logging
+from logging import Formatter, FileHandler
+from flask_migrate import Migrate
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-import logging
-from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
-from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -30,6 +30,21 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 
+venue_genres = db.Table('venue_genres',
+                        db.Column('venue_id', db.Integer, db.ForeignKey(
+                            'Venue.id'), primary_key=True),
+                        db.Column('genre_id', db.Integer, db.ForeignKey(
+                            'Genre.id'), primary_key=True)
+                        )
+
+artist_genres = db.Table('artist_genres',
+                         db.Column('artist_id', db.Integer, db.ForeignKey(
+                             'Artist.id'), primary_key=True),
+                         db.Column('genre_id', db.Integer, db.ForeignKey(
+                             'Genre.id'), primary_key=True)
+                         )
+
+
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
@@ -45,6 +60,8 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='venue', lazy=True)
+    genres = db.relationship(
+        'Genre', secondary='venue_genres', backref=db.backref('venues', lazy=True))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -57,7 +74,8 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.relationship(
+        'Genre', secondary='artist_genres', backref=db.backref('artists', lazy=True))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='artist', lazy=True)
@@ -76,6 +94,11 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey(
         'Artist.id'), nullable=False)
 
+
+class Genre(db.Model):
+    __tablename__ = "Genre"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -242,6 +265,7 @@ def show_venue(venue_id):
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
     form = VenueForm()
+    # TODO: fix genre
     return render_template('forms/new_venue.html', form=form)
 
 
