@@ -13,6 +13,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import Form
 from forms import *
+from enums.genres import Genre
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -30,21 +31,6 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 
-# venue_genres = db.Table('venue_genres',
-#                         db.Column('venue_id', db.Integer, db.ForeignKey(
-#                             'Venue.id'), primary_key=True),
-#                         db.Column('genre_id', db.Integer, db.ForeignKey(
-#                             'Genre.id'), primary_key=True)
-#                         )
-
-# artist_genres = db.Table('artist_genres',
-#                          db.Column('artist_id', db.Integer, db.ForeignKey(
-#                              'Artist.id'), primary_key=True),
-#                          db.Column('genre_id', db.Integer, db.ForeignKey(
-#                              'Genre.id'), primary_key=True)
-#                          )
-
-
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
@@ -60,8 +46,7 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='venue', lazy=True)
-    # genres = db.relationship(
-    #     'Genre', secondary='venue_genres', backref=db.backref('venues', lazy=True))
+    genres = db.Column(db.ARRAY(db.String))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -74,12 +59,10 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    # genres = db.relationship(
-    #     'Genre', secondary='artist_genres', backref=db.backref('artists', lazy=True))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     shows = db.relationship('Show', backref='artist', lazy=True)
-    # TODO: implement genres with enum
+    genres = db.Column(db.ARRAY(db.String))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
